@@ -352,14 +352,24 @@
       return toLocalISO(d);
     }
 
-    let tasks = [
-      { id: 1, name: "ส่งรายงานการเงิน", dueAt: atOffset(4, 17, 0) },
-      { id: 2, name: "ประชุมทีมขาย", dueAt: atOffset(0, 9, 0) },
-      { id: 3, name: "ส่งใบเสนอราคาให้ลูกค้า", dueAt: atOffset(6, 12, 0) },
-      { id: 4, name: "รีวิวดีไซน์เว็บไซต์", dueAt: atOffset(2, 15, 30) },
-      { id: 5, name: "อัปเดตสต๊อกสินค้า", dueAt: atOffset(2, 9, 30) },
-    ];
+
+    let tasks = JSON.parse(
+      localStorage.getItem('tasks')
+    ) || [
+        { id: 1, name: "ส่งรายงานการเงิน", dueAt: atOffset(4, 17, 0) },
+        { id: 2, name: "ประชุมทีมขาย", dueAt: atOffset(0, 9, 0) },
+        { id: 3, name: "ส่งใบเสนอราคาให้ลูกค้า", dueAt: atOffset(6, 12, 0) },
+        { id: 4, name: "รีวิวดีไซน์เว็บไซต์", dueAt: atOffset(2, 15, 30) },
+        { id: 5, name: "อัปเดตสต๊อกสินค้า", dueAt: atOffset(2, 9, 30) },
+      ];
     let nextId = 6;
+    function saveTasks() {
+      localStorage.setItem(
+        'tasks',
+        JSON.stringify(tasks)
+      );
+    }
+
 
     document.getElementById('taskDate').valueAsDate = new Date();
 
@@ -473,6 +483,7 @@
         newTask.fileURL = URL.createObjectURL(file);
       }
       tasks.push(newTask);
+      saveTasks();
       nameInput.value = '';
       fileInput.value = '';
       nameInput.focus();
@@ -483,6 +494,7 @@
       const t = tasks.find(x => x.id === id);
       if (t && t.fileURL) URL.revokeObjectURL(t.fileURL);
       tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
       render();
     }
 
@@ -500,6 +512,7 @@
         t.fileName = file.name;
         t.fileSize = file.size;
         t.fileURL = URL.createObjectURL(file);
+        saveTasks();
         render();
       }
       e.target.value = '';
@@ -510,6 +523,7 @@
       if (t && t.fileURL) {
         URL.revokeObjectURL(t.fileURL);
         delete t.fileName; delete t.fileSize; delete t.fileURL;
+        saveTasks()
         render();
       }
     }
