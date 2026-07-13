@@ -1,380 +1,434 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>จัดลำดับงานรายสัปดาห์</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#EEF1F5;
-    --paper-line:#D6DCE5;
-    --ink:#23283B;
-    --ink-soft:#565E77;
-    --urgent:#E85C4A;
-    --mid:#E8A23C;
-    --far:#3FA796;
-    --marker:#C6437B;
-    --card:#FFFFFF;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--paper);
-    background-image:
-      linear-gradient(var(--paper-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
-    background-size: 28px 28px;
-    color:var(--ink);
-    font-family:'Noto Sans Thai','IBM Plex Mono',sans-serif;
-    padding:32px 16px 64px;
-  }
-  .wrap{max-width:840px;margin:0 auto;}
-  h1{
-    font-family:'Space Grotesk','Noto Sans Thai',sans-serif;
-    font-weight:700;
-    font-size:28px;
-    letter-spacing:-0.02em;
-    margin:0 0 4px;
-  }
-  .sub{
-    color:var(--ink-soft);
-    font-size:14px;
-    margin:0 0 28px;
-    line-height:1.6;
-  }
-  .board{
-    background:var(--card);
-    border:1px solid var(--paper-line);
-    border-radius:10px;
-    overflow:hidden;
-    box-shadow:0 1px 3px rgba(35,40,59,0.06);
-    padding:10px;
-    min-height:80px;
-  }
-  #list{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:flex;
-    flex-direction:column;
-  }
-  .day-header{
-    display:flex;
-    align-items:baseline;
-    gap:8px;
-    padding:14px 8px 6px;
-    font-family:'IBM Plex Mono',monospace;
-  }
-  .day-header:first-child{padding-top:6px;}
-  .day-header .dname{
-    font-weight:600;
-    font-size:13px;
-    color:var(--ink);
-  }
-  .day-header .ddate{
-    font-size:11px;
-    color:var(--ink-soft);
-  }
-  .day-header .dline{
-    flex:1;
-    height:1px;
-    background:var(--paper-line);
-  }
-  .day-header .dcount{
-    font-size:10px;
-    color:#fff;
-    background:var(--marker);
-    border-radius:20px;
-    padding:1px 7px;
-    font-weight:600;
-  }
-  .task{
-    background:var(--card);
-    border:1px solid var(--paper-line);
-    border-left:5px solid var(--far);
-    border-radius:8px;
-    padding:10px 14px;
-    display:flex;
-    align-items:flex-start;
-    justify-content:space-between;
-    gap:10px;
-    margin:0 0 8px;
-    transition:transform .45s cubic-bezier(.2,.8,.2,1), box-shadow .2s;
-  }
-  .task.urgent{border-left-color:var(--urgent);}
-  .task.mid{border-left-color:var(--mid);}
-  .task-name{font-weight:600;font-size:15px;}
-  .task-meta{
-    display:flex;align-items:center;gap:10px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:12px;
-    color:var(--ink-soft);
-    white-space:nowrap;
-    padding-top:2px;
-  }
-  .time-tag{
-    background:var(--paper);
-    border:1px solid var(--paper-line);
-    border-radius:5px;
-    padding:2px 8px;
-    font-weight:600;
-    color:var(--ink);
-  }
-  .del{
-    border:none;background:transparent;color:var(--ink-soft);
-    cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;
-  }
-  .del:hover{color:var(--urgent);}
-  .task-body{display:flex;flex-direction:column;gap:4px;min-width:0;}
-  .file-chip{
-    display:inline-flex;align-items:center;gap:6px;
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
-    color:var(--marker);
-    background:#FBEFF4;
-    border:1px solid #F3D6E3;
-    border-radius:6px;
-    padding:2px 8px;
-    width:fit-content;
-    max-width:100%;
-    text-decoration:none;
-  }
-  .file-chip span.fname{
-    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:180px;
-  }
-  .file-chip .fdel{
-    border:none;background:none;color:var(--marker);cursor:pointer;
-    font-size:12px;padding:0;line-height:1;
-  }
-  .attach-btn{
-    border:1px dashed var(--paper-line);
-    background:none;
-    color:var(--ink-soft);
-    font-family:'IBM Plex Mono',monospace;
-    font-size:11px;
-    border-radius:6px;
-    padding:2px 8px;
-    cursor:pointer;
-    width:fit-content;
-  }
-  .attach-btn:hover{border-color:var(--marker);color:var(--marker);}
-  .empty{
-    padding:24px 12px;
-    text-align:center;
-    color:var(--ink-soft);
-    font-size:13px;
-  }
-  .add-row{
-    display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;
-  }
-  input[type=text], input[type=date], input[type=time]{
-    font-family:inherit;
-    font-size:14px;
-    padding:10px 12px;
-    border:1px solid var(--paper-line);
-    border-radius:8px;
-    background:var(--card);
-    color:var(--ink);
-  }
-  input[type=text]{flex:1;min-width:180px;}
-  input[type=date], input[type=time]{font-family:'IBM Plex Mono',monospace;}
-  button.add{
-    background:var(--ink);
-    color:#fff;
-    border:none;
-    border-radius:8px;
-    padding:10px 18px;
-    font-weight:600;
-    font-size:14px;
-    cursor:pointer;
-    font-family:'Noto Sans Thai',sans-serif;
-  }
-  button.add:hover{background:var(--marker);}
-  .hint{font-size:12px;color:var(--ink-soft);margin-top:8px;}
-  .legend{
-    display:flex;gap:16px;margin-top:18px;font-size:12px;color:var(--ink-soft);flex-wrap:wrap;
-  }
-  .legend span{display:inline-flex;align-items:center;gap:6px;}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>จัดลำดับงานรายสัปดาห์</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --paper: #EEF1F5;
+      --paper-line: #D6DCE5;
+      --ink: #23283B;
+      --ink-soft: #565E77;
+      --urgent: #E85C4A;
+      --mid: #E8A23C;
+      --far: #3FA796;
+      --marker: #C6437B;
+      --card: #FFFFFF;
+    }
 
-  .theme-btn{
-    margin:12px 0 20px;
-    border:none;
-    border-radius:8px;
-    padding:10px 14px;
-    cursor:pointer;
-    font-weight:600;
-    font-size:13px;
-    background:var(--card);
-    color:var(--ink);
-    border:1px solid var(--paper-line);
-    font-family:'Noto Sans Thai',sans-serif;
-  }
-  .theme-btn:hover{border-color:var(--marker);color:var(--marker);}
+    * {
+      box-sizing: border-box;
+    }
 
-  body.dark{
-    --paper:#121826;
-    --paper-line:#2A3346;
-    --ink:#F5F7FA;
-    --ink-soft:#AAB4C5;
-    --card:#1C2433;
-  }
-  body.dark .file-chip{background:#2A1C24;border-color:#432334;}
+    body {
+      margin: 0;
+      background: var(--paper);
+      background-image:
+        linear-gradient(var(--paper-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+      background-size: 28px 28px;
+      color: var(--ink);
+      font-family: 'Noto Sans Thai', 'IBM Plex Mono', sans-serif;
+      padding: 32px 16px 64px;
+    }
 
-  @media (max-width:600px){
-    body{padding:20px 12px 48px;}
-    .task{
-      flex-direction:column;
-      align-items:flex-start;
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
     }
-    .task-meta{
-      width:100%;
-      justify-content:space-between;
-      padding-top:6px;
+
+    h1 {
+      font-family: 'Space Grotesk', 'Noto Sans Thai', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      letter-spacing: -0.02em;
+      margin: 0 0 4px;
     }
-    h1{
-      font-size:22px;
+
+    .sub {
+      color: var(--ink-soft);
+      font-size: 14px;
+      margin: 0 0 28px;
+      line-height: 1.6;
     }
-    .add-row{flex-direction:column;}
-    input[type=text], input[type=date], input[type=time], input[type=file]{
-      width:100%;
+
+    .board {
+      background: var(--card);
+      border: 1px solid var(--paper-line);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(35, 40, 59, 0.06);
+      padding: 10px;
+      min-height: 80px;
     }
-    button.add{width:100%;}
-  }
-</style>
+
+    #list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .day-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 14px 8px 6px;
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .day-header:first-child {
+      padding-top: 6px;
+    }
+
+    .day-header .dname {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .day-header .ddate {
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .day-header .dline {
+      flex: 1;
+      height: 1px;
+      background: var(--paper-line);
+    }
+
+    .day-header .dcount {
+      font-size: 10px;
+      color: #fff;
+      background: var(--marker);
+      border-radius: 20px;
+      padding: 1px 7px;
+      font-weight: 600;
+    }
+
+    .task {
+      background: var(--card);
+      border: 1px solid var(--paper-line);
+      border-left: 5px solid var(--far);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0 0 8px;
+      transition: transform .45s cubic-bezier(.2, .8, .2, 1), box-shadow .2s;
+    }
+
+    .task.urgent {
+      border-left-color: var(--urgent);
+    }
+
+    .task.mid {
+      border-left-color: var(--mid);
+    }
+
+    .task-name {
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-soft);
+      white-space: nowrap;
+      padding-top: 2px;
+    }
+
+    .time-tag {
+      background: var(--paper);
+      border: 1px solid var(--paper-line);
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    .del {
+      border: none;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 2px 4px;
+    }
+
+    .del:hover {
+      color: var(--urgent);
+    }
+
+    .task-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .file-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      color: var(--marker);
+      background: #FBEFF4;
+      border: 1px solid #F3D6E3;
+      border-radius: 6px;
+      padding: 2px 8px;
+      width: fit-content;
+      max-width: 100%;
+      text-decoration: none;
+    }
+
+    .file-chip span.fname {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 180px;
+    }
+
+    .file-chip .fdel {
+      border: none;
+      background: none;
+      color: var(--marker);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      line-height: 1;
+    }
+
+    .attach-btn {
+      border: 1px dashed var(--paper-line);
+      background: none;
+      color: var(--ink-soft);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 11px;
+      border-radius: 6px;
+      padding: 2px 8px;
+      cursor: pointer;
+      width: fit-content;
+    }
+
+    .attach-btn:hover {
+      border-color: var(--marker);
+      color: var(--marker);
+    }
+
+    .empty {
+      padding: 24px 12px;
+      text-align: center;
+      color: var(--ink-soft);
+      font-size: 13px;
+    }
+
+    .add-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    input[type=text],
+    input[type=date],
+    input[type=time] {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 10px 12px;
+      border: 1px solid var(--paper-line);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--ink);
+    }
+
+    input[type=text] {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    input[type=date],
+    input[type=time] {
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+
+    button.add:hover {
+      background: var(--marker);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 8px;
+    }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      margin-top: 18px;
+      font-size: 12px;
+      color: var(--ink-soft);
+      flex-wrap: wrap;
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
 </head>
+
 <body>
-<div class="wrap">
-  <h1>จัดลำดับงานรายสัปดาห์</h1>
-  <button id="themeToggle" class="theme-btn">🌙 Dark Mode</button>
-  <p class="sub">ใส่งานพร้อม <b>วันที่และเวลา</b> ที่ต้องส่ง ระบบจะจัดเรียงให้อัตโนมัติ — งานที่ใกล้ถึงกำหนดสุดอยู่บนสุด งานที่ส่งช้าสุดอยู่ล่างสุด ถ้าวันเดียวกันมีหลายงาน จะเรียงตาม<b>เวลา</b>ในวันนั้นให้เอง และแนบ<b>ไฟล์รอส่ง</b>ติดกับงานแต่ละอันได้เลย</p>
+  <div class="wrap">
+    <h1>จัดลำดับงานรายสัปดาห์</h1>
+    <p class="sub">ใส่งานพร้อม <b>วันที่และเวลา</b> ที่ต้องส่ง ระบบจะจัดเรียงให้อัตโนมัติ —
+      งานที่ใกล้ถึงกำหนดสุดอยู่บนสุด งานที่ส่งช้าสุดอยู่ล่างสุด ถ้าวันเดียวกันมีหลายงาน
+      จะเรียงตาม<b>เวลา</b>ในวันนั้นให้เอง และแนบ<b>ไฟล์รอส่ง</b>ติดกับงานแต่ละอันได้เลย</p>
 
-  <input type="file" id="hiddenFileInput" style="display:none">
+    <input type="file" id="hiddenFileInput" style="display:none">
 
-  <div class="board">
-    <ul id="list"></ul>
+    <div class="board">
+      <ul id="list"></ul>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot" style="background:var(--urgent)"></i> ใกล้ถึงกำหนด (ภายใน 24 ชม.)</span>
+      <span><i class="dot" style="background:var(--mid)"></i> ปานกลาง (1-3 วัน)</span>
+      <span><i class="dot" style="background:var(--far)"></i> ยังไม่รีบ (3 วันขึ้นไป)</span>
+    </div>
+
+    <div class="add-row">
+      <input type="text" id="taskName" placeholder="ชื่องาน เช่น ส่งรายงานลูกค้า A" maxlength="40">
+      <input type="date" id="taskDate">
+      <input type="time" id="taskTime" value="17:00">
+      <input type="file" id="taskFile">
+      <button class="add" onclick="addTask()">+ เพิ่มงาน</button>
+    </div>
+    <p class="hint">รองรับสูงสุด 7 งาน · แนบไฟล์ได้งานละ 1 ไฟล์ (แนบตอนเพิ่ม หรือกด "แนบไฟล์" ทีหลังก็ได้) ·
+      ไฟล์อยู่ในเบราว์เซอร์นี้เท่านั้น ยังไม่หายไปไหนตราบใดที่ไม่ปิดแท็บ</p>
+
   </div>
 
-  <div class="legend">
-    <span><i class="dot" style="background:var(--urgent)"></i> ใกล้ถึงกำหนด (ภายใน 24 ชม.)</span>
-    <span><i class="dot" style="background:var(--mid)"></i> ปานกลาง (1-3 วัน)</span>
-    <span><i class="dot" style="background:var(--far)"></i> ยังไม่รีบ (3 วันขึ้นไป)</span>
-  </div>
+  <script>
+    const DAYS = ["อาทิตย์", "จันทร์", "อังคาร", "พุธ", "พฤหัสบดี", "ศุกร์", "เสาร์"];
 
-  <div class="add-row">
-    <input type="text" id="taskName" placeholder="ชื่องาน เช่น ส่งรายงานลูกค้า A" maxlength="40">
-    <input type="date" id="taskDate">
-    <input type="time" id="taskTime" value="17:00">
-    <input type="file" id="taskFile">
-    <button class="add" onclick="addTask()">+ เพิ่มงาน</button>
-  </div>
-  <p class="hint">รองรับสูงสุด 7 งาน · แนบไฟล์ได้งานละ 1 ไฟล์ (แนบตอนเพิ่ม หรือกด "แนบไฟล์" ทีหลังก็ได้) · งานถูกบันทึกไว้ในเบราว์เซอร์นี้ รีเฟรชแล้วไม่หาย (ไฟล์แนบจะรีเซ็ตเมื่อรีเฟรช เนื่องจากข้อจำกัดของเบราว์เซอร์)</p>
-</div>
-
-<script>
-const DAYS = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
-
-function toLocalISO(d){
-  const pad = n => String(n).padStart(2,'0');
-  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-const now = new Date();
-function atOffset(days, h, m){
-  const d = new Date(now);
-  d.setDate(d.getDate()+days);
-  d.setHours(h,m,0,0);
-  return toLocalISO(d);
-}
-
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [
-  { id: 1, name: "ส่งรายงานการเงิน", dueAt: atOffset(4, 17, 0) },
-  { id: 2, name: "ประชุมทีมขาย",     dueAt: atOffset(0, 9, 0) },
-  { id: 3, name: "ส่งใบเสนอราคาให้ลูกค้า", dueAt: atOffset(6, 12, 0) },
-  { id: 4, name: "รีวิวดีไซน์เว็บไซต์",  dueAt: atOffset(2, 15, 30) },
-  { id: 5, name: "อัปเดตสต๊อกสินค้า",   dueAt: atOffset(2, 9, 30) },
-];
-let nextId = Math.max(0, ...tasks.map(t=>t.id)) + 1;
-
-function saveTasks(){
-  // ตัดข้อมูลไฟล์แนบออกก่อนบันทึก เพราะไฟล์จริงเก็บใน localStorage ไม่ได้
-  // (blob URL ใช้ไม่ได้แล้วหลังรีเฟรชหน้า)
-  const toSave = tasks.map(({fileURL, fileName, fileSize, ...rest}) => rest);
-  localStorage.setItem('tasks', JSON.stringify(toSave));
-}
-
-document.getElementById('taskDate').valueAsDate = new Date();
-
-// --- นี่คือฟังก์ชันจัดลำดับหลัก ---
-function sortTasksByDeadline(list){
-  return [...list].sort((a,b)=> new Date(a.dueAt) - new Date(b.dueAt));
-}
-
-function urgencyClass(dueAt){
-  const diffHrs = (new Date(dueAt) - new Date()) / 3600000;
-  if(diffHrs <= 24) return 'urgent';
-  if(diffHrs <= 72) return 'mid';
-  return '';
-}
-
-function dayKey(dueAt){
-  const d = new Date(dueAt);
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function formatDayLabel(dueAt){
-  const d = new Date(dueAt);
-  const pad = n => String(n).padStart(2,'0');
-  return { dname: DAYS[d.getDay()], ddate: `${pad(d.getDate())}/${pad(d.getMonth()+1)}` };
-}
-
-function formatTime(dueAt){
-  const d = new Date(dueAt);
-  const pad = n => String(n).padStart(2,'0');
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function formatSize(bytes){
-  if(bytes < 1024) return bytes + ' B';
-  if(bytes < 1024*1024) return (bytes/1024).toFixed(0) + ' KB';
-  return (bytes/1024/1024).toFixed(1) + ' MB';
-}
-
-function render(){
-  const list = document.getElementById('list');
-  const positions = new Map();
-  [...list.querySelectorAll('.task')].forEach(el=>{
-    positions.set(el.dataset.id, el.getBoundingClientRect());
-  });
-
-  const sorted = sortTasksByDeadline(tasks);
-  list.innerHTML = '';
-
-  if(sorted.length === 0){
-    list.innerHTML = '<li class="empty">ยังไม่มีงาน — เพิ่มงานแรกของคุณด้านล่าง</li>';
-  }
-
-  let lastKey = null;
-  sorted.forEach(t=>{
-    const key = dayKey(t.dueAt);
-    if(key !== lastKey){
-      const { dname, ddate } = formatDayLabel(t.dueAt);
-      const count = sorted.filter(x=>dayKey(x.dueAt)===key).length;
-      const header = document.createElement('li');
-      header.className = 'day-header';
-      header.innerHTML = `<span class="dname">${dname}</span><span class="ddate">${ddate}</span><span class="dline"></span>${count>1?`<span class="dcount">${count} งาน</span>`:''}`;
-      list.appendChild(header);
-      lastKey = key;
+    function toLocalISO(d) {
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
-    const fileBlock = t.fileName
-      ? `<a class="file-chip" href="${t.fileURL}" download="${t.fileName}" title="${t.fileName}">📎 <span class="fname">${t.fileName}</span> · ${formatSize(t.fileSize)} <button type="button" class="fdel" onclick="event.preventDefault();removeFile(${t.id})">✕</button></a>`
-      : `<button type="button" class="attach-btn" onclick="attachClick(${t.id})">📎 แนบไฟล์</button>`;
-    const li = document.createElement('li');
-    li.className = 'task ' + urgencyClass(t.dueAt);
-    li.dataset.id = t.id;
-    li.innerHTML = `
+
+    const now = new Date();
+    function atOffset(days, h, m) {
+      const d = new Date(now);
+      d.setDate(d.getDate() + days);
+      d.setHours(h, m, 0, 0);
+      return toLocalISO(d);
+    }
+
+    let tasks = [
+      { id: 1, name: "ส่งรายงานการเงิน", dueAt: atOffset(4, 17, 0) },
+      { id: 2, name: "ประชุมทีมขาย", dueAt: atOffset(0, 9, 0) },
+      { id: 3, name: "ส่งใบเสนอราคาให้ลูกค้า", dueAt: atOffset(6, 12, 0) },
+      { id: 4, name: "รีวิวดีไซน์เว็บไซต์", dueAt: atOffset(2, 15, 30) },
+      { id: 5, name: "อัปเดตสต๊อกสินค้า", dueAt: atOffset(2, 9, 30) },
+    ];
+    let nextId = 6;
+
+    document.getElementById('taskDate').valueAsDate = new Date();
+
+    // --- นี่คือฟังก์ชันจัดลำดับหลัก ---
+    function sortTasksByDeadline(list) {
+      return [...list].sort((a, b) => new Date(a.dueAt) - new Date(b.dueAt));
+    }
+
+    function urgencyClass(dueAt) {
+      const diffHrs = (new Date(dueAt) - new Date()) / 3600000;
+      if (diffHrs <= 24) return 'urgent';
+      if (diffHrs <= 72) return 'mid';
+      return '';
+    }
+
+    function dayKey(dueAt) {
+      const d = new Date(dueAt);
+      return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    }
+
+    function formatDayLabel(dueAt) {
+      const d = new Date(dueAt);
+      const pad = n => String(n).padStart(2, '0');
+      return { dname: DAYS[d.getDay()], ddate: `${pad(d.getDate())}/${pad(d.getMonth() + 1)}` };
+    }
+
+    function formatTime(dueAt) {
+      const d = new Date(dueAt);
+      const pad = n => String(n).padStart(2, '0');
+      return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+      return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+    }
+
+    function render() {
+      const list = document.getElementById('list');
+      const positions = new Map();
+      [...list.querySelectorAll('.task')].forEach(el => {
+        positions.set(el.dataset.id, el.getBoundingClientRect());
+      });
+
+      const sorted = sortTasksByDeadline(tasks);
+      list.innerHTML = '';
+
+      if (sorted.length === 0) {
+        list.innerHTML = '<li class="empty">ยังไม่มีงาน — เพิ่มงานแรกของคุณด้านล่าง</li>';
+      }
+
+      let lastKey = null;
+      sorted.forEach(t => {
+        const key = dayKey(t.dueAt);
+        if (key !== lastKey) {
+          const { dname, ddate } = formatDayLabel(t.dueAt);
+          const count = sorted.filter(x => dayKey(x.dueAt) === key).length;
+          const header = document.createElement('li');
+          header.className = 'day-header';
+          header.innerHTML = `<span class="dname">${dname}</span><span class="ddate">${ddate}</span><span class="dline"></span>${count > 1 ? `<span class="dcount">${count} งาน</span>` : ''}`;
+          list.appendChild(header);
+          lastKey = key;
+        }
+        const fileBlock = t.fileName
+          ? `<a class="file-chip" href="${t.fileURL}" download="${t.fileName}" title="${t.fileName}">📎 <span class="fname">${t.fileName}</span> · ${formatSize(t.fileSize)} <button type="button" class="fdel" onclick="event.preventDefault();removeFile(${t.id})">✕</button></a>`
+          : `<button type="button" class="attach-btn" onclick="attachClick(${t.id})">📎 แนบไฟล์</button>`;
+        const li = document.createElement('li');
+        li.className = 'task ' + urgencyClass(t.dueAt);
+        li.dataset.id = t.id;
+        li.innerHTML = `
       <span class="task-body">
         <span class="task-name">${t.name}</span>
         ${fileBlock}
@@ -383,101 +437,87 @@ function render(){
         <span class="time-tag">${formatTime(t.dueAt)}</span>
         <button class="del" onclick="removeTask(${t.id})">✕</button>
       </span>`;
-    list.appendChild(li);
-  });
+        list.appendChild(li);
+      });
 
-  [...list.querySelectorAll('.task')].forEach(el=>{
-    const old = positions.get(el.dataset.id);
-    if(old){
-      const nowRect = el.getBoundingClientRect();
-      const dy = old.top - nowRect.top;
-      if(dy){
-        el.style.transform = `translateY(${dy}px)`;
-        requestAnimationFrame(()=>{ el.style.transform = ''; });
+      [...list.querySelectorAll('.task')].forEach(el => {
+        const old = positions.get(el.dataset.id);
+        if (old) {
+          const nowRect = el.getBoundingClientRect();
+          const dy = old.top - nowRect.top;
+          if (dy) {
+            el.style.transform = `translateY(${dy}px)`;
+            requestAnimationFrame(() => { el.style.transform = ''; });
+          }
+        }
+      });
+    }
+
+    function addTask() {
+      const nameInput = document.getElementById('taskName');
+      const dateInput = document.getElementById('taskDate');
+      const timeInput = document.getElementById('taskTime');
+      const fileInput = document.getElementById('taskFile');
+      const name = nameInput.value.trim();
+      if (!name) { nameInput.focus(); return; }
+      if (!dateInput.value) { dateInput.focus(); return; }
+      if (tasks.length >= 7) { alert('เต็ม 7 งานแล้ว ลบงานเก่าก่อนเพิ่มใหม่'); return; }
+      const dueAt = `${dateInput.value}T${timeInput.value || '17:00'}`;
+      const newTask = { id: nextId++, name, dueAt };
+      const file = fileInput.files[0];
+      if (file) {
+        newTask.fileName = file.name;
+        newTask.fileSize = file.size;
+        newTask.fileURL = URL.createObjectURL(file);
+      }
+      tasks.push(newTask);
+      nameInput.value = '';
+      fileInput.value = '';
+      nameInput.focus();
+      render();
+    }
+
+    function removeTask(id) {
+      const t = tasks.find(x => x.id === id);
+      if (t && t.fileURL) URL.revokeObjectURL(t.fileURL);
+      tasks = tasks.filter(t => t.id !== id);
+      render();
+    }
+
+    let pendingAttachId = null;
+    function attachClick(id) {
+      pendingAttachId = id;
+      document.getElementById('hiddenFileInput').click();
+    }
+
+    document.getElementById('hiddenFileInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      const t = tasks.find(x => x.id === pendingAttachId);
+      if (file && t) {
+        if (t.fileURL) URL.revokeObjectURL(t.fileURL);
+        t.fileName = file.name;
+        t.fileSize = file.size;
+        t.fileURL = URL.createObjectURL(file);
+        render();
+      }
+      e.target.value = '';
+    });
+
+    function removeFile(id) {
+      const t = tasks.find(x => x.id === id);
+      if (t && t.fileURL) {
+        URL.revokeObjectURL(t.fileURL);
+        delete t.fileName; delete t.fileSize; delete t.fileURL;
+        render();
       }
     }
-  });
-}
 
-function addTask(){
-  const nameInput = document.getElementById('taskName');
-  const dateInput = document.getElementById('taskDate');
-  const timeInput = document.getElementById('taskTime');
-  const fileInput = document.getElementById('taskFile');
-  const name = nameInput.value.trim();
-  if(!name){ nameInput.focus(); return; }
-  if(!dateInput.value){ dateInput.focus(); return; }
-  if(tasks.length >= 7){ alert('เต็ม 7 งานแล้ว ลบงานเก่าก่อนเพิ่มใหม่'); return; }
-  const dueAt = `${dateInput.value}T${timeInput.value || '17:00'}`;
-  const newTask = { id: nextId++, name, dueAt };
-  const file = fileInput.files[0];
-  if(file){
-    newTask.fileName = file.name;
-    newTask.fileSize = file.size;
-    newTask.fileURL = URL.createObjectURL(file);
-  }
-  tasks.push(newTask);
-  saveTasks();
-  nameInput.value = '';
-  fileInput.value = '';
-  nameInput.focus();
-  render();
-}
+    document.getElementById('taskName').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addTask();
+    });
 
-function removeTask(id){
-  const t = tasks.find(x=>x.id===id);
-  if(t && t.fileURL) URL.revokeObjectURL(t.fileURL);
-  tasks = tasks.filter(t=>t.id!==id);
-  saveTasks();
-  render();
-}
-
-let pendingAttachId = null;
-function attachClick(id){
-  pendingAttachId = id;
-  document.getElementById('hiddenFileInput').click();
-}
-
-document.getElementById('hiddenFileInput').addEventListener('change', e=>{
-  const file = e.target.files[0];
-  const t = tasks.find(x=>x.id===pendingAttachId);
-  if(file && t){
-    if(t.fileURL) URL.revokeObjectURL(t.fileURL);
-    t.fileName = file.name;
-    t.fileSize = file.size;
-    t.fileURL = URL.createObjectURL(file);
-    saveTasks();
     render();
-  }
-  e.target.value = '';
-});
-
-function removeFile(id){
-  const t = tasks.find(x=>x.id===id);
-  if(t && t.fileURL){
-    URL.revokeObjectURL(t.fileURL);
-    delete t.fileName; delete t.fileSize; delete t.fileURL;
-    saveTasks();
-    render();
-  }
-}
-
-document.getElementById('taskName').addEventListener('keydown', e=>{
-  if(e.key === 'Enter') addTask();
-});
-
-const savedTheme = localStorage.getItem('theme');
-if(savedTheme === 'dark'){
-  document.body.classList.add('dark');
-}
-
-document.getElementById('themeToggle').addEventListener('click', ()=>{
-  document.body.classList.toggle('dark');
-  const mode = document.body.classList.contains('dark') ? 'dark' : 'light';
-  localStorage.setItem('theme', mode);
-});
-
-render();
-</script>
+  </script>
 </body>
+
 </html>
